@@ -1,2 +1,5 @@
 <?xml version="1.0" encoding="ASCII"?>
-<ServerConfig:Install xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ServerConfig="http:///com/maconomy/tools/maconomyextender/configuration/model/serverconfig.ecore" time="2012-09-13T10:39:54.343+0200" revision="5d60b36840c282f485f46e2d6c99a77df79ca6b0" userid="SteenBrahe" tag="v2012.09.13_10.37.33_SteenBrahe"/>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ServerConfig="http:///com/maconomy/tools/maconomyextender/configuration/model/serverconfig.ecore">
+  <ServerConfig:Install time="2012-09-13T10:39:54.343+0200" revision="5d60b36840c282f485f46e2d6c99a77df79ca6b0" userid="SteenBrahe" tag="v2012.09.13_10.37.33_SteenBrahe"/>
+  <ServerConfig:Install time="2012-09-13T10:42:09.786+0200" revision="5d60b36840c282f485f46e2d6c99a77df79ca6b0" userid="SteenBrahe" tag="v2012.09.13_10.37.33_SteenBrahe"/>
+</xmi:XMI>
