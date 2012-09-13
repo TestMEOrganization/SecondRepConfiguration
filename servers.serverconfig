@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="ASCII"?>
+<ServerConfig:Configuration xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ServerConfig="http:///com/maconomy/tools/maconomyextender/configuration/model/serverconfig.ecore" version="14.0" serviceLevel="0" defaultServer="//@servers.0" configVersion="2">
+  <servers port="22" id="Development" name="Development server" description="A development Maconomy server under repository control. The server is used for testing revisions from the server repository." installPath="//localhost/d/maconomy/w_14_0"/>
+</ServerConfig:Configuration>

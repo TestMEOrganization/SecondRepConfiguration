@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Initials YYYY-MM-DD Ver   Brief summary -->
+<!-- ************************************** -->
+<!-- MOK 2011-08-25 Ver 0.4 X Namespace changed to www.deltek.com -->
+
+<!-- Indication after version number: . = backward compatible, X = NOT backward compatable, conversion needed -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           xmlns="http://www.deltek.com/ns/mdsl"
+           targetNamespace="http://www.deltek.com/ns/mdsl" 
+           elementFormDefault="qualified" 
+           attributeFormDefault="unqualified">
+
+  <xs:include schemaLocation="./Basics.xsd"/>
+
+  <xs:complexType name="XMDSLBase">
+    <xs:sequence>
+      <xs:element name="Container" type="XContainer" minOccurs="0"/>
+    </xs:sequence>
+    <!-- minVersion is the minimum supported version -->
+    <xs:attribute name="minVersion" type="MDSLVersionType" fixed="0.5"/>
+    <!-- maxVersion is the version of the current xsd (=current version) -->
+    <xs:attribute name="maxVersion" type="MDSLVersionType" fixed="0.5"/>
+  </xs:complexType>
+
+  <xs:simpleType name="MDSLVersionType">
+    <xs:restriction base="VersionType">
+      <xs:pattern value="0.[5]"/>
+<!--      <xs:pattern value="0.((1[3-9])|(2[0-1]))"/>-->
+    </xs:restriction>
+  </xs:simpleType>
+  <!--
+  -->
+
+  <xs:element name="MDSL" type="XMDSL"/>
+
+  <xs:complexType name="XMDSL">
+    <xs:complexContent>
+      <xs:extension base="XMDSLBase">
+        <xs:attribute name="version" type="MDSLVersionType" use="required"/>
+        <xs:attribute name="maxVersion" type="MDSLVersionType" use="prohibited"/>
+        <xs:attribute name="minVersion" type="MDSLVersionType" use="prohibited"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XContainer">
+    <xs:sequence>
+      <xs:choice>
+        <xs:sequence>
+          <xs:element name="Filter" type="XFilter" minOccurs="0"/>
+          <xs:element name="Card" type="XCard" minOccurs="0"/>
+          <xs:element name="Table" type="XTable" minOccurs="0"/>
+        </xs:sequence>
+        <xs:element name="Pane" type="XPane" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="name" type="IdType" use="required"/>
+    <xs:attribute name="title" type="TitleType" use="required"/>
+  </xs:complexType>
+
+  <xs:simpleType name="XActionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Create"/>
+      <xs:enumeration value="Insert"/>
+      <xs:enumeration value="Add"/>
+      <xs:enumeration value="Read"/>
+      <xs:enumeration value="Update"/>
+      <xs:enumeration value="Delete"/>
+      <xs:enumeration value="Up"/>
+      <xs:enumeration value="Down"/>
+      <xs:enumeration value="Indent"/>
+      <xs:enumeration value="Outdent"/>
+      <xs:enumeration value="PrintThis"/>
+      <xs:enumeration value="Print"/>
+      <xs:enumeration value="RunReport"/>
+      <xs:enumeration value="Revert"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="XActions">
+    <xs:sequence>
+      <xs:element name="Create" type="XCreate" minOccurs="0"/>
+      <xs:element name="Read" type="XCrud" minOccurs="0"/>
+      <xs:element name="Update" type="XCrud" minOccurs="0"/>
+      <xs:element name="Delete" type="XCrud" minOccurs="0"/>
+      <xs:element name="Move" type="XMove" minOccurs="0"/>
+      <xs:element name="PrintThis" type="XPrintThis" minOccurs="0"/>
+      <xs:element name="Print" type="XPrint" minOccurs="0"/>
+      <xs:element name="RunReport" type="XCrud" minOccurs="0"/>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="Action" type="XAction"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="XBasePane">
+    <xs:group ref="paneContent_g"/>
+    <xs:attributeGroup ref="paneAttr_ag"/>
+  </xs:complexType>
+
+  <xs:complexType name="XFilter">
+    <xs:complexContent>
+      <xs:extension base="XBasePane"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XCard">
+    <xs:complexContent>
+      <xs:extension base="XBasePane">
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XTable">
+    <xs:complexContent>
+      <xs:extension base="XBasePane">
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XPane">
+    <xs:complexContent>
+      <xs:extension base="XBasePane">
+        <xs:attribute name="type" type="XPaneType" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:group name="paneContent_g">
+    <xs:sequence>
+      <xs:element name="Actions" type="XActions" minOccurs="0"/>
+      <xs:element name="Fields" type="XFields" minOccurs="0"/>
+      <xs:element name="ForeignKeys" type="XForeignKeys" minOccurs="0"/>
+    </xs:sequence>
+  </xs:group>
+
+  <xs:group name="referenceKeys_g">
+    <xs:choice>
+      <xs:element name="ForeignKey" type="XForeignKey"/>
+      <xs:element name="SearchKey" type="XSearchKey"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="referencesKeys_g">
+    <xs:choice>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:group ref="referenceKeys_g"/>
+      </xs:choice>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="XForeignKeys">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="ForeignKeySwitch" type="XForeignKeySwitch"/>
+      <xs:group ref="referenceKeys_g"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:attributeGroup name="paneAttr_ag">
+    <xs:attribute name="entity" type="IdType"/>
+    <xs:attribute name="title" type="TitleType"/>
+    <xs:attribute name="entityTitle" type="TitleType"/>
+    <xs:attribute name="gender" type="TitleType"/>
+    <xs:attribute name="highLevelLock" type="BooleanType" default="false"/>
+    <xs:attribute name="sideEffects" type="BooleanType" default="false"/>
+    <xs:attribute name="autoPositionField" type="IdType" />
+  </xs:attributeGroup>
+
+  <xs:complexType name="XFields">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="Field" type="XField"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="XField">
+    <xs:attribute name="name" type="IdType" use="required"/>
+    <xs:attribute name="title" type="TitleType"/>
+    <xs:attribute name="hidden" type="BooleanType" default="false"/>
+    <xs:attribute name="mandatory" type="BooleanType" default="false"/>
+    <xs:attribute name="type" type="XeFieldType" use="required"/>
+    <xs:attribute name="maxLength" type="XPositiveIntegerType"/>
+    <xs:attribute name="create" type="BooleanType" default="false"/>
+    <xs:attribute name="update" type="BooleanType" default="false"/>
+    <xs:attribute name="key" type="BooleanType" default="false"/>
+    <xs:attribute name="secret" type="BooleanType" default="false"/>
+    <xs:attribute name="richText" type="BooleanType" default="false"/>
+    <xs:attribute name="proxy" type="IdType"/>
+    <xs:attribute name="autoSubmit" type="BooleanType" default="false"/>
+    <xs:attribute name="foreignkeySwitchField" type="IdType"/>
+    <xs:attribute name="references" type="ForeignKeyIdListType"/>
+    <xs:attribute name="subType" type="IdType"/>
+    <xs:attribute name="unfilterable" type="BooleanType" default="false"/>
+    <xs:attribute name="suggestions" type="XeSuggestionsType" default="automatic" />
+  </xs:complexType>
+
+  <xs:complexType name="XReferenceKeyBase">
+  </xs:complexType>
+
+  <xs:complexType name="XReferenceKey">
+    <xs:complexContent>
+      <xs:extension base="XReferenceKeyBase">
+        <xs:sequence>
+          <xs:choice minOccurs="1" maxOccurs="unbounded">
+            <xs:element name="Field" type="XForeignKeyField"/>
+          </xs:choice>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="SupplementField" type="XSupplementField"/>
+          </xs:choice>
+        </xs:sequence>
+        <xs:attribute name="name" type="ForeignKeyIdType" use="required"/>
+        <xs:attribute name="entity" type="IdType" use="required"/>
+        <xs:attribute name="source" type="IdType"/>
+        <xs:attribute name="title" type="TitleType"/>
+        <xs:attribute name="parentReference" type="BooleanType" default="false"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XForeignKey">
+    <xs:complexContent>
+      <xs:extension base="XReferenceKey"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XSearchKey">
+    <xs:complexContent>
+      <xs:extension base="XReferenceKey"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XForeignKeyField">
+    <xs:attribute name="ref" type="IdType" use="required"/>
+    <xs:attribute name="foreignKeyField" type="IdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="XSupplementField">
+    <xs:attribute name="ref" type="IdType" use="required"/>
+    <xs:attribute name="foreignField" type="IdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="XBaseAction">
+    <xs:attribute name="title" type="TitleType"/>
+    <xs:attribute name="name" type="IdType"/>
+    <xs:attribute name="icon" type="XResourceIdType"/>
+  </xs:complexType>
+
+  <xs:complexType name="XCrud">
+    <xs:complexContent>
+      <xs:extension base="XBaseAction"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XCreate">
+    <xs:complexContent>
+      <xs:extension base="XCrud">
+        <xs:sequence>
+          <xs:element name="Insert" type="XCrud" minOccurs="0"/>
+          <xs:element name="Add" type="XCrud" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XMove">
+    <xs:complexContent>
+      <xs:extension base="XCrud">
+        <xs:sequence>
+          <xs:element name="Up" type="XCrud" minOccurs="0"/>
+          <xs:element name="Down" type="XCrud" minOccurs="0"/>
+          <xs:element name="Indent" type="XCrud" minOccurs="0"/>
+          <xs:element name="Outdent" type="XCrud" minOccurs="0"/>        
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XPrint">
+    <xs:complexContent>
+      <xs:extension base="XCrud">
+        <xs:attribute name="source" type="IdType" use="required"/>
+        <xs:attribute name="layout" type="IdType" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XPrintThis">
+    <xs:complexContent>
+      <xs:extension base="XCrud">
+        <xs:attribute name="printLayout" type="IdType" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XAction">
+    <xs:complexContent>
+      <xs:extension base="XBaseAction">
+        <xs:attribute name="defaultAvailable" type="BooleanType" default="true"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XForeignKeySwitch">
+    <xs:complexContent>
+      <xs:extension base="XReferenceKeyBase">
+        <xs:sequence>
+          <xs:element name="Case" type="XCase" minOccurs="1" maxOccurs="unbounded"/>
+          <xs:element name="Default" type="XDefault" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="field" type="IdType" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XCase">
+    <xs:choice>
+      <xs:group ref="referencesKeys_g"/>
+    </xs:choice>
+    <xs:attribute name="value" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="XDefault">
+    <xs:choice>
+      <xs:group ref="referencesKeys_g"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:simpleType name="XPaneType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="card"/>
+      <xs:enumeration value="table"/>
+      <xs:enumeration value="filter"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

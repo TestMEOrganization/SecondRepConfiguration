@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Initials YYYY-MM-DD Version  Brief summary -->
+<!-- ************************************** -->
+
+<!-- PEN 2010-20-05 Version 0.1   Initial version -->
+<!-- ANH 2011-08-09 Version 0.2 X Changed namespace from maconomy to deltek -->
+
+<!-- Indication after version number: . = backward compatible, X = NOT backward compatible, conversion needed -->
+
+<xs:schema  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+            xmlns="http://www.deltek.com/ns/mnsl" 
+            targetNamespace="http://www.deltek.com/ns/mnsl" 
+            xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+            jxb:version="2.0"
+            elementFormDefault="qualified" 
+            attributeFormDefault="unqualified">
+
+  <xs:include schemaLocation="./Basics.xsd"/>
+  
+  <!-- **************************************************************************** -->
+  <!-- ****************************       ROOT       ****************************** -->
+  <!-- **************************************************************************** -->
+  
+  <xs:element name="MNSL" type="XMNSL"/>
+  
+  <xs:complexType name="XMNSLBase">
+    <xs:choice>
+      <xs:group ref="mnslContent_g" minOccurs="0"/>
+    </xs:choice>
+    <!-- minVersion is the minimum supported version -->
+    <xs:attribute name="minVersion" type="VersionType" fixed="0.2"/>
+    <!-- maxVersion is the version of the current xsd (=current version) -->
+    <xs:attribute name="maxVersion" type="VersionType" fixed="0.2"/>
+  </xs:complexType>
+
+  <xs:simpleType name="MNSLVersionType">
+    <xs:restriction base="VersionType">
+      <xs:pattern value="0.[2]" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="XMNSL">
+    <xs:complexContent>
+      <xs:extension base="XMNSLBase">
+        <xs:attribute name="version" type="MNSLVersionType" use="required"/>
+        <xs:attribute name="maxVersion" type="VersionType" use="prohibited"/>
+        <xs:attribute name="minVersion" type="VersionType" use="prohibited"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:group name="mnslContent_g">
+    <xs:choice>
+      <xs:group ref="mnslMembers_g"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="mnslMembers_g">
+    <xs:choice>
+      <xs:group ref="notifications_g" minOccurs="0"/>
+    </xs:choice>
+  </xs:group>
+  
+  <xs:group name="notifications_g">
+    <xs:choice>
+      <xs:element name="Notifications" type="XNotifications"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="XNotifications">
+   <xs:choice>
+     <xs:group ref="notificationsContent_g"/>
+   </xs:choice>
+    <xs:attribute name="name" type="IdType" use="required"/>
+  </xs:complexType>
+
+  <xs:group name="notificationsContent_g">
+    <xs:choice>
+      <xs:group ref="notificationMembers_g"/>
+    </xs:choice>
+  </xs:group>
+  
+  <xs:group name="notificationMembers_g">
+    <xs:sequence>
+      <xs:group ref="query_g" minOccurs="0"/>
+      <xs:group ref="link_g"/>
+    </xs:sequence>
+  </xs:group>
+
+  <xs:group name="query_g">
+    <xs:choice>
+      <xs:element name="Query" type="XQuery"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="XQuery">
+   <xs:choice>
+     <xs:group ref="queryContent_g"/>
+   </xs:choice>
+    <xs:attribute name="entity" type="XEntityType" use="required"/>
+  </xs:complexType>
+  
+  <xs:group name="queryContent_g">
+    <xs:choice>
+      <xs:group ref="queryMembers_g"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="queryMembers_g">
+    <xs:sequence>
+      <xs:group ref="restriction_g"/>
+    </xs:sequence>
+  </xs:group>
+  
+  <xs:group name="restriction_g">
+    <xs:choice>
+      <xs:element name="Restriction" type="XRestriction"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="XRestriction">
+    <xs:sequence>
+      <xs:group ref="restrictionContent_g"/>
+    </xs:sequence>
+    <xs:attribute name="condition" type="XExpressionType"/>
+  </xs:complexType>
+
+  <xs:group name="restrictionContent_g">
+    <xs:sequence>
+      <xs:group ref="restrictionMembers_g"/>
+    </xs:sequence>
+  </xs:group>
+  
+  <xs:group name="restrictionMembers_g">
+    <xs:sequence>
+      <xs:group ref="condition_g" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:group>
+  
+  <xs:group name="condition_g">
+    <xs:choice>
+      <xs:element name="Condition" type="XCondition">
+        <xs:annotation>
+          <xs:appinfo>
+            <jxb:property name="conditionElement"/>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:element>   
+    </xs:choice>
+  </xs:group>
+  
+  <xs:complexType name="XCondition">
+    <xs:simpleContent>
+      <xs:extension base="XExpressionType">
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
+  <xs:group name="link_g">
+    <xs:choice>
+      <xs:element name="Link" type="XLink"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="XLink">
+    <xs:choice>
+      <xs:group ref="linkContent_g"/>
+    </xs:choice>
+    <xs:attribute name="workspace" type="IdType" use="required"/>
+    <xs:attribute name="icon" type="XResourceIdType"/>
+  </xs:complexType>
+  
+  <xs:group name="linkContent_g">
+    <xs:choice>
+      <xs:group ref="linkMembers_g"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="linkMembers_g">
+    <xs:sequence>
+      <xs:group ref="description_g"/>
+      <xs:group ref="waypoint_g" minOccurs="0" maxOccurs="4"/>
+      <xs:group ref="target_g"/>
+    </xs:sequence>
+  </xs:group>
+
+  <xs:group name="description_g">
+    <xs:choice>
+      <xs:element name="Description" type="XDescription"/>
+    </xs:choice>
+  </xs:group>
+  
+  <xs:complexType name="XDescription">
+    <xs:attribute name="template" type="XPlaceholderStringType" use="required"/>
+    <xs:attribute name="arguments" type="XLimitedQualifiedIdListType"/>
+  </xs:complexType>
+
+  <xs:simpleType name="XLimitedQualifiedIdListType">
+    <xs:restriction base="XQualifiedIdListType">
+      <xs:maxLength value="5"/>
+    </xs:restriction>
+  </xs:simpleType>  
+
+  <xs:group name="waypoint_g">
+    <xs:choice>
+      <xs:element name="Waypoint" type="XWaypoint"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="XWaypointBase" abstract="true">
+    <xs:choice>
+      <xs:group ref="waypointContent_g"/>
+    </xs:choice>
+    <xs:attribute name="pane" type="IdType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="XWaypoint">
+    <xs:complexContent> 
+      <xs:extension base="XWaypointBase"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:group name="waypointContent_g">
+    <xs:choice>
+      <xs:group ref="waypointMember_g"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="waypointMember_g">
+    <xs:sequence>
+      <xs:group ref="paneRestriction_g"/>
+    </xs:sequence>
+  </xs:group>
+
+  <xs:group name="target_g">
+    <xs:choice>
+      <xs:element name="Target" type="XTarget"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="XTarget">
+    <xs:complexContent> 
+      <xs:extension base="XWaypointBase"/>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <xs:group name="paneRestriction_g">
+    <xs:choice>
+      <xs:element name="Restriction" type="XPaneRestriction"/>
+    </xs:choice>
+  </xs:group>
+  
+  <xs:complexType name="XPaneRestriction">
+    <xs:choice>
+      <xs:group ref="paneRestrictionContent_g"/>
+    </xs:choice>
+    <xs:attribute name="title" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:group name="paneRestrictionContent_g">
+    <xs:choice>
+      <xs:group ref="paneRestrictionMember_g"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="paneRestrictionMember_g">
+    <xs:sequence>
+      <xs:group ref="match_g" maxOccurs="4"/>
+    </xs:sequence>
+  </xs:group>
+
+  <xs:group name="match_g">
+    <xs:choice>
+      <xs:element name="Match" type="XMatch"/>
+    </xs:choice>
+  </xs:group>
+  
+  <xs:complexType name="XMatch">
+    <xs:attribute name="field" type="IdType" use="required"/>
+    <xs:attribute name="queryField" type="QualifiedIdType" use="required"/>
+  </xs:complexType>
+  
+</xs:schema>

@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Initials YYYY-MM-DD Version  Brief summary -->
+<!-- ************************************** -->
+
+<!-- BLA 2008-12-19 Version 0.1   Original menu-specification -->
+<!-- PEN 2010-02-16 Version 0.2   Introduced auto-section -->
+<!-- ANH 2010-04-27 Version 0.3   Introduced conditionals in menu- and auto-section, and ref-attr on items in the auto-section -->
+<!-- ANH 2010-09-22 Version 0.4   Renamed Item-tag to Workspace-tag and workspace-attr to source-attr, removed layout-attr from Workspace-tag -->
+<!-- PEN 2011-06-30 Version 0.5   Stripped extensions from icon references -->
+<!-- ANH 2011-08-18 Version 0.6 X Changed namespace from maconomy to deltek -->
+
+<!-- Indication after version number: . = backward compatible, X = NOT backward compatible, conversion needed -->
+
+<xs:schema  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+            xmlns="http://www.deltek.com/ns/mmsl" 
+            targetNamespace="http://www.deltek.com/ns/mmsl"
+            xmlns:jxb="http://java.sun.com/xml/ns/jaxb" 
+            jxb:version="2.0" 
+            elementFormDefault="qualified" 
+            attributeFormDefault="unqualified">
+
+  <xs:include schemaLocation="./Basics.xsd" />
+
+  <!-- **************************************************************************** -->
+  <!-- ****************************       MMSL       ****************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:element name="MMSL" type="XMMSL" />
+
+  <xs:complexType name="XMMSLBase" abstract="true">
+    <xs:choice>
+      <xs:group ref="mmslContent_g" />
+    </xs:choice>
+    <!-- minVersion is the minimum supported version -->
+    <xs:attribute name="minVersion" type="VersionType" fixed="0.6" />
+    <!-- maxVersion is the version of the current xsd (=current version) -->
+    <xs:attribute name="maxVersion" type="VersionType" fixed="0.6" />
+  </xs:complexType>
+  
+  <xs:simpleType name="MMSLVersionType">
+    <xs:restriction base="VersionType">
+      <xs:pattern value="0.[6]" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="XMMSL">
+    <xs:complexContent>
+      <xs:extension base="XMMSLBase">
+        <xs:attribute name="version" type="MMSLVersionType" use="required" />
+        <xs:attribute name="maxVersion" type="VersionType" use="prohibited" />
+        <xs:attribute name="minVersion" type="VersionType" use="prohibited" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:group name="mmslContent_g">
+    <xs:choice>
+      <xs:group ref="mmslMembers_g" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="mmslMembers_g">
+    <xs:sequence>
+      <xs:group ref="menu_g" minOccurs="0" />
+      <xs:group ref="auto_g" minOccurs="0" />
+    </xs:sequence>
+  </xs:group>
+
+  <!-- **************************************************************************** -->
+  <!-- ****************************       MENU       ****************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:group name="menu_g">
+    <xs:choice>
+      <xs:element name="Menu" type="XMenu" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="XMenu">
+    <xs:choice>
+      <xs:group ref="menuContent_g" />
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:group name="menuContent_g">
+    <xs:choice>
+      <xs:group ref="menuMembers_g" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="menuMembers_g">
+    <xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo>
+            <jxb:property name="menuMembers" />
+          </xs:appinfo>
+        </xs:annotation>
+        <xs:group ref="workspace_g" />
+        <xs:group ref="group_g" />
+        <xs:group ref="menuConditional_g" />
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+
+  <!-- **************************************************************************** -->
+  <!-- ****************************    WORKSPACE     ****************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:group name="workspace_g">
+    <xs:choice>
+      <xs:element name="Workspace" type="XWorkspace" />
+    </xs:choice>
+  </xs:group>
+  
+  <xs:group name="autoWorkspace_g">
+    <xs:choice>
+      <xs:element name="Workspace" type="XWorkspaceRef" />
+    </xs:choice>
+  </xs:group>
+  
+  <xs:complexType name="XWorkspaceBase" abstract="true">
+    <xs:attributeGroup ref="workspace_ag" />
+    <xs:attribute name="ref" type="IdType" />
+  </xs:complexType>
+
+  <xs:complexType name="XWorkspace">
+    <xs:complexContent>
+      <xs:restriction base="XWorkspaceBase">
+        <xs:attribute name="title"  type="TitleType"  use="required" />
+        <xs:attribute name="source" type="IdType"     use="required" />
+        <xs:attribute name="ref"                      use="prohibited" />
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XWorkspaceRef">
+    <xs:complexContent>
+      <xs:restriction base="XWorkspaceBase">
+        <xs:attribute name="title"  type="TitleType"  use="optional" />
+        <xs:attribute name="source" type="IdType"     use="optional" />
+        <xs:attribute name="name"   type="IdType"     use="prohibited" />
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:attributeGroup name="workspace_ag">
+    <xs:attribute name="title"    type="TitleType" />
+    <xs:attribute name="icon"     type="XResourceIdType" />
+    <xs:attribute name="source"   type="IdType" />
+    <xs:attribute name="name"     type="IdType" />
+    <xs:attribute name="pluginId" type="PluginIdType" 
+                  default="com.maconomy.client.workspace.editorbased" />
+  </xs:attributeGroup>
+
+  <!-- **************************************************************************** -->
+  <!-- ****************************       GROUP      ****************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:group name="group_g">
+    <xs:choice>
+      <xs:element name="Group" type="XGroup" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="XGroup">
+    <xs:choice>
+      <xs:group ref="groupContent_g" />
+    </xs:choice>
+    <xs:attribute name="title" type="TitleType" use="required" />
+    <xs:attribute name="name"  type="IdType" />
+    <xs:attribute name="icon"  type="XResourceIdType" />
+  </xs:complexType>
+
+  <xs:group name="groupContent_g">
+    <xs:choice>
+      <xs:group ref="groupMembers_g" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="groupMembers_g">
+    <xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo>
+            <jxb:property name="groupMembers" />
+          </xs:appinfo>
+        </xs:annotation>
+        <xs:group ref="workspace_g" />
+        <xs:group ref="group_g" />
+        <xs:group ref="groupConditional_g" />
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  
+  <!-- **************************************************************************** -->
+  <!-- ****************************       AUTO       ****************************** -->
+  <!-- **************************************************************************** -->
+  
+  <xs:group name="auto_g">
+    <xs:choice>
+      <xs:element name="Auto" type="XAuto" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="XAuto">
+    <xs:choice>
+      <xs:group ref="autoContent_g" />
+    </xs:choice>
+  </xs:complexType>
+  
+    <xs:group name="autoContent_g">
+    <xs:choice>
+      <xs:group ref="autoMembers_g" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="autoMembers_g">
+    <xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo>
+            <jxb:property name="autoMembers" />
+          </xs:appinfo>
+        </xs:annotation>
+        <xs:group ref="autoWorkspace_g" />
+        <xs:group ref="autoConditional_g" />
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+
+  <!-- **************************************************************************** -->
+  <!-- ****************************   CONDITIONALS   ****************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:attributeGroup name="if_ag">
+    <xs:attribute name="condition"  type="XBooleanExpressionType" use="required"/>
+    <xs:attribute name="default"    type="BooleanType"            default="false"/>
+  </xs:attributeGroup>
+  
+  <xs:attributeGroup name="elseIf_ag">
+    <xs:attribute name="condition"  type="XBooleanExpressionType" use="required"/>
+    <xs:attribute name="default"    type="BooleanType"            default="false"/>
+  </xs:attributeGroup>
+  
+  <xs:attributeGroup name="else_ag">
+    <xs:attribute name="condition"  type="XBooleanExpressionType" fixed="true" use="prohibited"/>
+    <xs:attribute name="default"    type="BooleanType"            default="true"/>
+  </xs:attributeGroup>
+
+  <!-- **************************************************************************** -->
+  <!-- **************************   MENU CONDITIONAL   **************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:group name="menuConditional_g">
+    <xs:sequence>
+      <xs:element name="If"     type="XMenuIf"      minOccurs="1" maxOccurs="1" />
+      <xs:element name="ElseIf" type="XMenuElseIf"  minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="Else"   type="XMenuElse"    minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+  </xs:group>
+
+  <xs:complexType name="XMenuConditionalBranch" abstract="true">
+    <xs:choice>
+       <xs:group ref="menuContent_g" />
+     </xs:choice>
+  </xs:complexType>
+  
+  <xs:complexType name="XMenuIf">
+    <xs:complexContent>
+      <xs:extension base="XMenuConditionalBranch">
+        <xs:attributeGroup ref="if_ag" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XMenuElseIf">
+    <xs:complexContent>
+      <xs:extension base="XMenuConditionalBranch">
+        <xs:attributeGroup ref="elseIf_ag" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XMenuElse">
+    <xs:complexContent>
+      <xs:extension base="XMenuConditionalBranch">
+        <xs:attributeGroup ref="else_ag" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <!-- **************************************************************************** -->
+  <!-- **************************   GROUP CONDITIONAL  **************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:group name="groupConditional_g">
+    <xs:sequence>
+      <xs:element name="If"     type="XGroupIf"     minOccurs="1" maxOccurs="1" />
+      <xs:element name="ElseIf" type="XGroupElseIf" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="Else"   type="XGroupElse"   minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+  </xs:group>
+
+  <xs:complexType name="XGroupConditionalBranch" abstract="true">
+    <xs:choice>
+       <xs:group ref="groupContent_g" />
+     </xs:choice>
+  </xs:complexType>
+  
+  <xs:complexType name="XGroupIf">
+    <xs:complexContent>
+      <xs:extension base="XGroupConditionalBranch">
+        <xs:attributeGroup ref="if_ag" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XGroupElseIf">
+    <xs:complexContent>
+      <xs:extension base="XGroupConditionalBranch">
+        <xs:attributeGroup ref="elseIf_ag" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XGroupElse">
+    <xs:complexContent>
+      <xs:extension base="XGroupConditionalBranch">
+        <xs:attributeGroup ref="else_ag" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <!-- **************************************************************************** -->
+  <!-- **************************   AUTO CONDITIONAL   **************************** -->
+  <!-- **************************************************************************** -->
+  
+  <xs:group name="autoConditional_g">
+    <xs:sequence>
+      <xs:element name="If"     type="XAutoIf"      minOccurs="1" maxOccurs="1" />
+      <xs:element name="ElseIf" type="XAutoElseIf"  minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="Else"   type="XAutoElse"    minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+  </xs:group>
+
+  <xs:complexType name="XAutoConditionalBranch" abstract="true">
+    <xs:choice>
+       <xs:group ref="autoContent_g" />
+     </xs:choice>
+  </xs:complexType>
+  
+  <xs:complexType name="XAutoIf">
+    <xs:complexContent>
+      <xs:extension base="XAutoConditionalBranch">
+        <xs:attributeGroup ref="if_ag" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XAutoElseIf">
+    <xs:complexContent>
+      <xs:extension base="XAutoConditionalBranch">
+        <xs:attributeGroup ref="elseIf_ag" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XAutoElse">
+    <xs:complexContent>
+      <xs:extension base="XAutoConditionalBranch">
+        <xs:attributeGroup ref="else_ag" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <!-- **************************************************************************** -->
+  <!-- ****************************   SIMPLE TYPES   ****************************** -->
+  <!-- **************************************************************************** -->
+
+</xs:schema>

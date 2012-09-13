@@ -1,0 +1,1495 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!-- Schema for Workspace-spec in Java-client -->
+<!-- MOK 060606 Initial work -->
+<!-- MOK 070607 Version 0.1   First release -->
+<!-- MOK 070831 Version 0.2   Support for tag: Empty and default layouts added  -->
+<!-- MOK 070918 Version 0.3   Empty-tag adjustments-->
+<!-- MOK 071018 Version 0.4   title- and layout-attr removed from Hidden-tag -->
+<!-- MOK 090301 Version 0.5   Added support for Formation- Segment and Fix-tag. Empty-tag removed. Other cleanup -->
+<!-- MOK 090301 Version 0.6   Cleanup and desupport of Workspaces-tag (links to other workspaces) -->
+<!-- MOK 090402 Version 0.7   Support for filters within workspaces -->
+<!-- MOK 090427 Version 0.8   Attr: collapsed on clumps changed name to minimized -->
+<!-- MOK 090427 Version 0.9   name-attr added for many tags, other cleanup  -->
+<!--                          '%' in front of a deprecated tag/attr means that is also desupported -->
+<!-- MOK 090902 Version 0.10  title-attr removed for CardTable-tag, only Hidden tags allowed in Addendums, 
+                              name- and title-attr removed from Workspace-tag. 
+                              ActionCard-tag must follow a Fix-tag (binding)
+                              reversedForeignKey is mandatory on Restrict-tag -->
+<!-- MOK 090907 Version 0.11  horizontal-attr for Formation-tag is desupported
+                              %Dashboard-tag is deprecated, support for multiple components in Workspace-tag,
+                              %CardTable-tag is deprecated, 
+                              %Segment-tag is deprecated, replaced by Section-tag 
+                              %Addendums-tag is deprecated -->
+<!-- MOK 091110 Version 0.12  With-tag is introduced
+                              %dialog-attr on pane-tags are deprecated, replaced by source-attr 
+                              %CardTable-tag is desupported 
+                              %ActionCard-tag is deprecated, replaced by Card-tag
+                              %Fix-tag is deprecated, replaced by Mount-tag 
+                              %UpperBind-tag is desupported -->               
+<!-- MOK 100223 Version 0.13  Segment-tag is desupported
+                              ActionCard-tag is desupported 
+                              Fix-tag is is desupported 
+                              Dashboard-tag is desupported
+                              dialog-attr on pane-tags is desupported 
+                              Addendums-tag is deprecated            
+                              foreignKey on Bind-tag is mandatory -->
+<!--  MOK 100329 Version 0.14 hidden-attr is added to panes
+                              hidden-attr is added to clumps 
+                              view-attr on panes can be defined empty -->
+<!--  ANH 100512 Version 0.15 new Define-tag as child of Workspace-tag
+                              hidden-attr is changed to expression type -->
+<!--  ANH 100601 Version 0.16 changed view-attr from OptIdType to ExpressionType -->
+<!--  MOK 100616 Version 0.17 parentSize-attr added to clump-tags (Expansions and Assistants)-->
+<!--  MOK 100719 Version 0.18 Section-tag extended for general use. Through-tag added
+                              Define-tag can only be placed as first tag in a Workspace-tag (now controlled by the xsd) 
+                              name-attr on Workspace is mandatory (has always been, now also by spec.)-->
+<!--  MOK 100908 Version 0.19 Workspace-tag allowed in Through-tag -->              
+<!--  MOK 100910 Version 0.20 . parentSize-attr and minimized-attr is prohibited for Extensions-tags directly under a Section-tag
+                                source-attr in Workspace-tag is added, replaces ref-attr -->
+<!--  MOK 100910 Version 0.21 X hidden-attr do now support 'isEmpty()' (and as before 'hasNoData()') -->
+<!--  MOK 2011-03-29 Ver 0.22 . hidden-attr added to section-tag -->
+<!--  MOK 2011-18-08 Ver 0.23 X Namespace changed from maconomy to deltek.
+                                Name for primary-fk is now 'primary' (used to be 'self'). 'with' and 'mount' are added as default names for these bindings. -->
+
+<!-- Indication after version number: . = backward compatible, X = NOT backward compatable, conversion needed -->
+
+<xs:schema targetNamespace="http://www.deltek.com/ns/mwsl"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+           jxb:version="2.0"
+           xmlns="http://www.deltek.com/ns/mwsl"           
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified"
+           xmlns:ai="http://jaxb.dev.java.net/plugin/if_insertion"
+           jxb:extensionBindingPrefixes="ai">
+  <!--
+	-->
+  <xs:include schemaLocation="Basics.xsd" />
+  <!--
+  Main element: MWSL
+	-->
+  <xs:complexType name="XMWSLBase">
+    <xs:choice>
+      <xs:element name="Workspace" type="XWorkspace"/>
+    </xs:choice>
+    <!-- minVersion is the minimum supported version -->
+    <xs:attribute name="minVersion" type="VersionType" fixed="0.23" />
+    <!-- maxVersion is the version of the current xsd (=current version) -->
+    <xs:attribute name="maxVersion" type="VersionType" fixed="0.23" />
+  </xs:complexType>
+  <!--
+  -->  
+  <xs:simpleType name="MWSLVersionType">
+    <xs:restriction base="VersionType">
+      <xs:pattern value="0.(2[3])"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <!--
+  -->
+  <xs:element name="MWSL" type="XMWSL"/>
+  <!--
+  -->
+  <xs:complexType name="XMWSL">
+    <xs:complexContent>
+      <xs:extension base="XMWSLBase">
+        <xs:attribute name="version" type="MWSLVersionType" use="required" />
+        <xs:attribute name="maxVersion" use="prohibited" />
+        <xs:attribute name="minVersion" use="prohibited" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>  
+  <!--
+  Generic dialog
+	-->
+  <xs:simpleType name="XeComponentType">
+    <xs:restriction base="IdType">
+      <xs:enumeration value="Filter"/>    
+      <xs:enumeration value="Card"/>
+      <xs:enumeration value="Table"/>
+      <xs:enumeration value="PrintCard"/>
+      <xs:enumeration value="Hidden"/>
+      <xs:enumeration value="Section"/>
+      <xs:enumeration value="Root"/>
+      <xs:enumeration value="Reference"/> 
+      <xs:enumeration value="Wizard"/> 
+      <xs:enumeration value="Search"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <!--
+  -->
+  <xs:simpleType name="XHiddenType">
+    <xs:union>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="hasNoRecords()" />
+          <xs:enumeration value="hasNoChildren()" />
+          <xs:enumeration value="hasNoSeed()" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="XExpressionType"/>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+  <!--
+  -->
+  <xs:simpleType name="XeClumpType">
+    <xs:restriction base="IdType">
+      <xs:enumeration value="Expansions"/>    
+      <xs:enumeration value="Assistants"/>
+      <xs:enumeration value="Formation"/>
+      <xs:enumeration value="Detached"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <!--
+  -->
+  <xs:simpleType name="XeConnectionType">
+    <xs:restriction base="IdType">
+      <xs:enumeration value="Bind"/>    
+      <xs:enumeration value="Restrict"/>
+      <xs:enumeration value="Mount"/>
+      <xs:enumeration value="Transparent"/>
+      <xs:enumeration value="With"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- 
+  -->
+  <xs:complexType name="XComponentBase">
+    <xs:group ref="subBase_g" minOccurs="0"/>
+    <xs:attribute name="name" type="IdType"/>
+    <xs:attribute name="title" type="TitleType"/>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XPaneBase" abstract="true">
+    <xs:annotation><xs:appinfo>
+        <ai:interfaces check="false">jaxb.mwsl.structure.XiComponent</ai:interfaces>
+    </xs:appinfo></xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="XComponentBase">
+        <xs:attribute name="layout" type="OptIdType"/>
+        <xs:attribute name="view" type="XExpressionType" />
+        <xs:attribute name="source" type="IdType"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XDialogComponentBase" abstract="true">
+    <xs:complexContent>
+      <xs:restriction base="XPaneBase">
+        <xs:group ref="subBase_g" minOccurs="0"/>
+        <xs:attribute name="source" type="IdType" /> 
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XVisibleDialogComponentBase" abstract="true">
+    <xs:complexContent>
+      <xs:extension base="XDialogComponentBase"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XInvisibleDialogComponentBase" abstract="true">
+    <xs:complexContent>
+      <xs:restriction base="XDialogComponentBase">
+        <xs:group ref="subHidden_g" minOccurs="0"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XFilterBaseBase">
+    <xs:complexContent>
+      <xs:extension base="XDialogComponentBase">
+        <xs:attribute name="pluginId" type="PluginIdType" default="com.maconomy.client.pane.filter"/>
+        <xs:attribute name="type" type="XeComponentType" fixed="Filter"/>
+        <xs:attribute name="hidden" type="XHiddenType"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XFilterBase">
+    <xs:complexContent>
+      <xs:restriction base="XFilterBaseBase">
+        <xs:group ref="subFilter_g" minOccurs="0"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XFilter">
+    <xs:complexContent>
+      <xs:restriction base="XFilterBase">
+        <xs:group ref="subFilter_g" minOccurs="0"/>
+        <xs:attribute name="source" type="IdType" use="required"/>                
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XWithFilter">
+    <xs:complexContent>
+      <xs:restriction base="XFilterBase">
+        <xs:group ref="subFilter_g" minOccurs="0"/>
+        <xs:attribute name="source" use="prohibited"/>        
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XTableBaseBase">
+    <xs:complexContent>
+      <xs:extension base="XVisibleDialogComponentBase">
+        <xs:attribute name="cardPluginId" type="PluginIdType" default="com.maconomy.client.pane.card"/>
+        <xs:attribute name="pluginId" type="PluginIdType" default="com.maconomy.client.pane.table"/>
+        <xs:attribute name="type" type="XeComponentType" fixed="Table"/>
+        <xs:attribute name="hidden" type="XHiddenType"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XTableBase">
+    <xs:complexContent>
+      <xs:restriction base="XTableBaseBase">
+        <xs:group ref="subTable_g" minOccurs="0"/>
+        <xs:attribute name="cardPluginId" use="prohibited"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+    <!--
+  -->
+  <xs:complexType name="XTable">
+    <xs:complexContent>
+      <xs:restriction base="XTableBase">
+     	  <xs:group ref="subTable_g" minOccurs="0"/>
+        <xs:attribute name="cardPluginId" use="prohibited"/>
+        <xs:attribute name="type" use="prohibited"/>
+        <xs:attribute name="source" type="IdType" use="required"/>                
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XWithTable">
+    <xs:complexContent>
+      <xs:restriction base="XTableBase">
+        <xs:group ref="subTable_g" minOccurs="0"/>
+        <xs:attribute name="source" use="prohibited"/>        
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  Card (complete or no table) from Card-dialog
+	-->
+  <xs:complexType name="XCardBaseBase">
+    <xs:complexContent>
+      <xs:extension base="XVisibleDialogComponentBase">
+        <xs:attribute name="pluginId" type="PluginIdType" default="com.maconomy.client.pane.card"/>
+        <xs:attribute name="type" type="XeComponentType" fixed="Card"/>
+        <xs:attribute name="hidden" type="XHiddenType"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- 
+   -->
+  <xs:complexType name="XCardBase">
+    <xs:complexContent>
+      <xs:restriction base="XCardBaseBase">
+        <xs:group ref="subSingle_g" minOccurs="0"/>
+        <xs:attribute name="type" use="prohibited"/>        
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- 
+   -->
+  <xs:complexType name="XCard">
+    <xs:complexContent>
+      <xs:restriction base="XCardBase">
+        <xs:group ref="subSingle_g" minOccurs="0"/>
+        <xs:attribute name="source" type="IdType" use="required"/> 
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- 
+   -->
+  <xs:complexType name="XWithCard">
+    <xs:complexContent>
+      <xs:restriction base="XCardBase">
+        <xs:group ref="subSingle_g" minOccurs="0"/>
+        <xs:attribute name="source" use="prohibited"/>        
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XSection">
+    <xs:complexContent>
+      <xs:restriction base="XSectionBase">
+        <xs:group ref="subSingle_g" minOccurs="0"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XSectionRoot">
+    <xs:complexContent>
+      <xs:restriction base="XSectionBase">
+        <xs:group ref="subRoot_g" minOccurs="0"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  No pane (no Card) from Card-dialog
+	-->
+  <xs:complexType name="XHiddenBaseBase">
+    <xs:complexContent>
+      <xs:extension base="XInvisibleDialogComponentBase">
+        <xs:attribute name="pluginId" type="PluginIdType" default="com.maconomy.client.pane.card"/>
+        <xs:attribute name="type" type="XeComponentType" fixed="Hidden"/>
+        <xs:attribute name="hidden" type="XHiddenType"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XHiddenBase">
+    <xs:complexContent>
+      <xs:restriction base="XHiddenBaseBase">
+        <xs:group ref="subHidden_g" minOccurs="0"/>
+        <xs:attribute name="title" use="prohibited" />
+        <xs:attribute name="layout" use="prohibited" />
+        <xs:attribute name="view" use="prohibited" />
+        <xs:attribute name="type" use="prohibited"/>
+        <xs:attribute name="hidden" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XHidden">
+    <xs:complexContent>
+      <xs:restriction base="XHiddenBase">
+        <xs:group ref="subHidden_g" minOccurs="0"/>
+        <xs:attribute name="source" type="IdType" use="required"/>        
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XWithHidden">
+    <xs:complexContent>
+      <xs:restriction base="XHiddenBase">
+        <xs:group ref="subHidden_g" minOccurs="0"/>
+        <xs:attribute name="source" use="prohibited"/>        
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XSectionBaseBase">
+    <xs:complexContent>
+      <xs:extension base="XPaneBase">
+        <xs:attribute name="pluginId" type="PluginIdType" default="com.maconomy.client.pane.empty"/>  
+        <xs:attribute name="type" type="XeComponentType" fixed="Section"/>
+        <xs:attribute name="hidden" type="XHiddenType" />
+      </xs:extension>      
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XSectionBase">
+    <xs:complexContent>
+      <xs:restriction base="XSectionBaseBase">
+        <xs:group ref="subBase_g" minOccurs="0" />
+        <xs:attribute name="title" type="TitleType" use="required"/>
+        <xs:attribute name="name" type="IdType" />
+        <xs:attribute name="source" use="prohibited" />        
+        <xs:attribute name="view" use="prohibited" />        
+        <xs:attribute name="layout" use="prohibited" />
+        <xs:attribute name="type" use="prohibited"/>        
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XSectionSingle">
+    <xs:complexContent>
+      <xs:restriction base="XSectionBase">
+        <xs:group ref="subSectionSingle_g" minOccurs="0"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XSectionTable">
+    <xs:complexContent>
+      <xs:restriction base="XSectionBase">
+        <xs:group ref="subSectionTable_g" minOccurs="0"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XSectionFilter">
+    <xs:complexContent>
+      <xs:restriction base="XSectionBase">
+        <xs:group ref="subSectionFilter_g" minOccurs="0"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XWorkspaceBase">
+    <xs:complexContent>
+      <xs:extension base="XComponentBase">
+        <xs:attribute name="type" type="XeComponentType" fixed="Root"/>      
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->  
+  <xs:complexType name="XWorkspace">
+    <xs:complexContent>
+     <xs:restriction base="XWorkspaceBase">
+        <xs:group ref="topRoot_g" minOccurs="0"/>
+        <xs:attribute name="type" use="prohibited"/>
+        <xs:attribute name="name" type="IdType" use="required"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+    Extends ComponentBase by Workspace-attrs
+  -->
+  <xs:complexType name="XWorkspaceRefBase">
+    <xs:complexContent>
+      <xs:extension base="XComponentBase">
+        <xs:attribute name="source" type="IdType" use="required"/>
+        <xs:attribute name="type" type="XeComponentType" fixed="Reference"/>      
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+    Restrict/deny inner tags in Workspace-tags
+  -->
+  <xs:complexType name="XWorkspaceRef">
+    <xs:complexContent>
+      <xs:restriction base="XWorkspaceRefBase">
+        <xs:attribute name="title" use="prohibited"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>  
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  Abstract generic Compositions
+	-->
+  <xs:complexType name="XClumpBase" abstract="true">
+    <xs:annotation><xs:appinfo>
+        <ai:interfaces check="false">jaxb.mwsl.structure.XiClump</ai:interfaces>
+    </xs:appinfo></xs:annotation>  
+    <xs:attribute name="minimized" type="BooleanType" />
+    <xs:attribute name="horizontal" type="BooleanType" />
+    <xs:attribute name="name" type="IdType" />
+    <xs:attribute name="hidden" type="XHiddenType" default="false" />
+    <xs:attribute name="parentSize" type="XeSizeType" default="standard" />
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XCompositionsBase" abstract="true">
+    <xs:complexContent>
+      <xs:extension base="XClumpBase">
+        <xs:group ref="bindsBase_g" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XExpansionsBase">
+    <xs:annotation><xs:appinfo>
+        <ai:interfaces check="false">jaxb.mwsl.structure.XiExpansions</ai:interfaces>
+    </xs:appinfo></xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="XCompositionsBase">
+        <xs:attribute name="type" type="XeClumpType" fixed="Expansions" /> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XExpansionsFilter">
+    <xs:complexContent>
+      <xs:restriction base="XExpansionsBase">
+        <xs:group ref="bindsFilter_g"/>
+        <xs:attribute name="horizontal" type="BooleanType" default="false"/>
+        <xs:attribute name="minimized" type="BooleanType" default="false"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XExpansionsSingle">
+    <xs:complexContent>
+      <xs:restriction base="XExpansionsBase">
+        <xs:group ref="bindsSingle_g"/>
+        <xs:attribute name="horizontal" type="BooleanType" default="false"/>
+        <xs:attribute name="minimized" type="BooleanType" default="false"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XExpansionsSectionBase">
+    <xs:complexContent>
+      <xs:restriction base="XExpansionsBase">
+        <xs:group ref="bindsBase_g"/>
+        <xs:attribute name="type" use="prohibited"/>
+        <xs:attribute name="horizontal" use="prohibited" />
+        <xs:attribute name="hidden" use="prohibited"/>
+        <xs:attribute name="parentSize" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XExpansionsSubRoot">
+    <xs:complexContent>
+      <xs:restriction base="XExpansionsSectionBase">
+        <xs:group ref="bindsSubRoot_g"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <!--
+  -->
+  <xs:complexType name="XExpansionsSectionFilter">
+    <xs:complexContent>
+      <xs:restriction base="XExpansionsSectionBase">
+        <xs:group ref="bindsFilter_g"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XExpansionsSectionSingle">
+    <xs:complexContent>
+      <xs:restriction base="XExpansionsSectionBase">
+        <xs:group ref="bindsSingle_g"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XExpansionsSectionTable">
+    <xs:complexContent>
+      <xs:restriction base="XExpansionsSectionBase">
+        <xs:group ref="bindsSingle_g"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XFormationBaseBase" abstract="true">
+    <xs:complexContent>
+      <xs:restriction base="XClumpBase">
+        <xs:attribute name="horizontal" use="prohibited" />
+        <xs:attribute name="parentSize" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XFormationBase">
+    <xs:annotation><xs:appinfo>
+        <ai:interfaces check="false">jaxb.mwsl.structure.XiExpansions</ai:interfaces>
+    </xs:appinfo></xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="XFormationBaseBase">
+        <xs:group ref="sectionsBase_g" />
+        <xs:attribute name="type" type="XeClumpType" fixed="Formation"/>    
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="XFormationPostBase">
+    <xs:complexContent>
+      <xs:restriction base="XFormationBase">
+          <xs:group ref="sectionsBase_g"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>  
+  <!--
+    Formation used direct inside a Filter-tag
+  -->
+  <xs:complexType name="XFormationFilter">
+    <xs:complexContent>
+      <xs:restriction base="XFormationPostBase">
+         <xs:group ref="sectionsFilter_g"  />
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+   -->
+  <xs:complexType name="XFormationSectionFilter">
+    <xs:complexContent>
+      <xs:restriction base="XFormationPostBase">
+        <xs:group ref="sectionsFilter_g"  />
+        <xs:attribute name="minimized" use="prohibited" />
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+    Formation used direct inside a Card/PrintCard-tag
+  -->
+  <xs:complexType name="XFormationSingle">
+    <xs:complexContent>
+      <xs:restriction base="XFormationPostBase">
+        <xs:group ref="sectionsSingle_g"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+   -->
+  <xs:complexType name="XFormationSectionSingle">
+    <xs:complexContent>
+      <xs:restriction base="XFormationPostBase">
+        <xs:group ref="sectionsSingle_g"/>
+        <xs:attribute name="minimized" use="prohibited" />
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <!--
+    Formation used direct inside a Table-tag
+  -->
+  <xs:complexType name="XFormationTable">
+    <xs:complexContent >
+      <xs:restriction base="XFormationPostBase">
+        <xs:group ref="sectionsTable_g"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+   -->
+  <xs:complexType name="XFormationSectionTable">
+    <xs:complexContent >
+      <xs:restriction base="XFormationPostBase">
+        <xs:group ref="sectionsTable_g"/>
+        <xs:attribute name="minimized" use="prohibited" />
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+    Formation used at toplevel (or direct inside a top-level Formation/Section-tag)    
+  -->
+  <xs:complexType name="XFormationRoot">
+    <xs:complexContent>
+      <xs:restriction base="XFormationPostBase">
+        <xs:group ref="sectionsRoot_g"/>
+        <xs:attribute name="minimized" use="prohibited" />
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XAssistantsBase">
+    <xs:complexContent>
+      <xs:extension base="XCompositionsBase">
+        <xs:attribute name="enlarged" type="BooleanType" default="false"/>
+        <xs:attribute name="type" type="XeClumpType" fixed="Assistants"/> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XAssistantsFilter">
+    <xs:complexContent>
+      <xs:restriction base="XAssistantsBase">
+        <xs:group ref="bindsFilter_g"/>
+        <xs:attribute name="horizontal" type="BooleanType" default="false"/>
+        <xs:attribute name="minimized" type="BooleanType" default="true"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XAssistantsSingle">
+    <xs:complexContent>
+      <xs:restriction base="XAssistantsBase">
+        <xs:group ref="bindsSingle_g" />
+        <xs:attribute name="horizontal" type="BooleanType" default="true"/>
+        <xs:attribute name="minimized" type="BooleanType" default="true"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XDetachedBase">
+    <xs:complexContent>
+      <xs:extension base="XCompositionsBase">
+        <xs:attribute name="type" type="XeClumpType" fixed="Detached"/> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  --> 
+  <xs:complexType name="XConnectBase" abstract="true">
+    <xs:annotation><xs:appinfo>
+        <ai:interfaces check="false">jaxb.mwsl.structure.XiConnection</ai:interfaces>
+    </xs:appinfo></xs:annotation>  
+    <xs:group ref="componentsBase_g"/>
+    <xs:attribute name="foreignKey" type="BindForeignKeyIdType" use="optional"/>
+    <xs:attribute name="reversedForeignKey" type="ForeignKeyIdType" use="optional"/>
+    <xs:attribute name="name" type="IdType" use="optional"/>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XBindBaseBase">
+    <xs:complexContent>
+      <xs:extension base="XConnectBase">
+        <xs:attribute name="type" type="XeConnectionType" fixed="Bind"/>    
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XBindBase">
+    <xs:complexContent>
+      <xs:restriction base="XBindBaseBase">
+        <xs:group ref="bindComponents_g"/>
+        <xs:attribute name="reversedForeignKey" use="prohibited"/>
+        <xs:attribute name="foreignKey" type="BindForeignKeyIdType" use="required"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  
+  <xs:complexType name="XRestrictBaseBase">
+    <xs:complexContent>
+      <xs:extension base="XConnectBase">
+        <xs:attribute name="type" type="XeConnectionType" fixed="Restrict"/>    
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XRestrictBase">
+    <xs:complexContent>
+      <xs:restriction base="XRestrictBaseBase">
+        <xs:group ref="restrictComponent_g"/>
+        <xs:attribute name="reversedForeignKey" type="ForeignKeyIdType" use="required"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XSingleRestrict">
+    <xs:complexContent>
+      <xs:restriction base="XRestrictBase">
+        <xs:group ref="restrictComponent_g"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XSingleBind">
+    <xs:complexContent>
+      <xs:restriction base="XBindBase">
+        <xs:group ref="bindComponents_g"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XSingleTransparent">
+    <xs:complexContent>
+      <xs:restriction base="XTransparentBase">
+        <xs:group ref="transparentComponents_g"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+	-->
+  <xs:complexType name="XTransparentBaseBase">
+    <xs:complexContent>
+      <xs:extension base="XConnectBase">
+        <xs:attribute name="type" type="XeConnectionType" fixed="Transparent"/>    
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XTransparentBase">
+    <xs:complexContent>
+      <xs:restriction base="XTransparentBaseBase">
+        <xs:group ref="componentsBase_g"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XWithBaseBase">
+    <xs:complexContent>
+      <xs:extension base="XConnectBase">
+        <xs:attribute name="type" type="XeConnectionType" fixed="With"/>    
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XWithBase">
+    <xs:complexContent>
+      <xs:restriction base="XWithBaseBase">
+        <xs:group ref="withComponents_g"/>
+        <xs:attribute name="foreignKey" use="prohibited"/>
+        <xs:attribute name="reversedForeignKey" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XSingleWith">
+    <xs:complexContent>
+      <xs:restriction base="XWithBase">
+        <xs:group ref="withComponents_g"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>  
+  <!--
+  -->
+  <xs:complexType name="XMountBaseBase">
+    <xs:complexContent>
+      <xs:extension base="XConnectBase">
+        <xs:attribute name="type" type="XeConnectionType" fixed="Mount"/>    
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XMountBase">
+    <xs:complexContent>
+      <xs:restriction base="XMountBaseBase">
+        <xs:group ref="componentsBase_g"/>
+        <xs:attribute name="foreignKey" use="prohibited"/>
+        <xs:attribute name="reversedForeignKey" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:complexType name="XSingleMount">
+    <xs:complexContent>
+      <xs:restriction base="XMountBase">
+        <xs:group ref="subRootComponents_g"/>
+        <xs:attribute name="type" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  Groups (aliases)
+  -->
+  <xs:group name="restrictComponent_g">
+    <xs:choice>
+      <xs:group ref="workspaceComponent_g"/>
+      <xs:group ref="filterComponent_g"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+	-->
+  <xs:group name="bindComponent_g">
+    <xs:choice>
+      <xs:group ref="dialogComponent_g"/>
+      <xs:group ref="workspaceComponent_g"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+	-->
+  <xs:group name="bindComponents_g">
+    <xs:sequence>
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="bindComponent_g"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+	-->
+  <xs:group name="transparentComponents_g">
+    <xs:sequence>
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="transparentComponent_g"/>
+        <xs:group ref="workspaceComponent_g"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->  
+  <xs:group name="withComponents_g">
+    <xs:sequence>
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="withComponent_g"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="componentBase_g">
+    <xs:choice>      
+      <xs:element name="Section" type="XSectionBase"/>
+      <xs:element name="Table" type="XTableBase"/>
+      <xs:element name="Card" type="XCardBase"/>
+      <xs:element name="Hidden" type="XHiddenBase"/>    
+      <xs:element name="Workspace" type="XWorkspaceRefBase"/>
+      <xs:element name="Filter" type="XFilterBase"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="filterComponent_g">
+    <xs:choice>
+      <xs:element name="Filter" type="XFilter"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="workspaceComponent_g">
+    <xs:choice>
+      <xs:element name="Workspace" type="XWorkspaceRef"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="dialogComponent_g">
+    <xs:choice> 
+      <xs:element name="Table" type="XTable"/>
+      <xs:element name="Card" type="XCard"/>
+      <xs:element name="Hidden" type="XHidden"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="transparentComponent_g">
+    <xs:choice>
+      <xs:element name="Section" type="XSection"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+	-->
+  <xs:group name="withComponent_g">
+    <xs:choice>      
+      <xs:element name="Table" type="XWithTable"/>
+      <xs:element name="Card" type="XWithCard"/>
+      <xs:element name="Hidden" type="XWithHidden"/>    
+      <xs:element name="Filter" type="XWithFilter"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="component_g">
+    <xs:choice>
+      <xs:group ref="transparentComponent_g"/>
+      <xs:group ref="bindComponent_g"/>
+      <xs:group ref="filterComponent_g"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="subRootComponent_g">
+    <xs:choice>
+      <xs:group ref="sectionRoot_g"/>
+      <xs:group ref="bindComponent_g"/>
+      <xs:group ref="filterComponent_g"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="topRootComponent_g">
+    <xs:choice>
+      <xs:group ref="subRootComponent_g"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="sectionBase_g">
+    <xs:choice>
+      <xs:element name="Section" type="XSectionBase" />
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="sectionsBase_g">
+    <xs:choice>
+      <xs:choice minOccurs="0">
+        <xs:group ref="sectionBase_g" maxOccurs="unbounded" />
+        <xs:group ref="bindsBase_g" />
+      </xs:choice>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->  
+  <xs:group name="sectionFilter_g">
+    <xs:choice>
+      <xs:element name="Section" type="XSectionFilter" />
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="sectionsFilter_g">
+    <xs:choice>
+      <xs:choice minOccurs="0">
+        <xs:group ref="sectionFilter_g" maxOccurs="unbounded" />
+      </xs:choice>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->  
+  <xs:group name="sectionSingle_g">
+    <xs:choice>
+      <xs:element name="Section" type="XSectionSingle" />
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="sectionsSingle_g">
+    <xs:choice>
+      <xs:choice minOccurs="0">
+        <xs:group ref="sectionSingle_g" maxOccurs="unbounded" />
+      </xs:choice>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->  
+  <xs:group name="sectionTable_g">
+    <xs:choice>
+      <xs:element name="Section" type="XSectionTable" />
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="sectionsTable_g">
+    <xs:choice>
+      <xs:choice minOccurs="0">
+        <xs:group ref="sectionTable_g" maxOccurs="unbounded" />
+      </xs:choice>  
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->  
+  <xs:group name="sectionRoot_g">
+    <xs:choice>
+      <xs:element name="Section" type="XSectionRoot" />
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="sectionsRoot_g">
+    <xs:choice>
+      <xs:choice minOccurs="0">
+        <xs:group ref="sectionRoot_g" maxOccurs="unbounded" />
+      </xs:choice>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="componentsBase_g">
+    <xs:sequence>
+      <xs:choice maxOccurs="unbounded">
+        <!--  use name 'components' in method-names (like getComponents() when asking for components  -->
+        <xs:annotation><xs:appinfo>
+            <jxb:property name="components"/>
+          </xs:appinfo></xs:annotation>
+        <xs:group ref="componentBase_g"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="components_g">
+    <xs:sequence>
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="component_g" />
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="subRootComponents_g">
+    <xs:sequence>
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="subRootComponent_g" />
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="topRootComponents_g">
+    <xs:sequence>
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="topRootComponent_g" />
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="topRoot_g">
+    <xs:sequence>
+      <xs:group ref="define_g" minOccurs="0"/>
+      <xs:choice minOccurs="0">
+        <xs:group ref="topRootComponents_g" />
+        <xs:element name="Formation" type="XFormationRoot"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="subBase_g">
+    <xs:sequence>
+      <xs:group ref="define_g" minOccurs="0"/>     
+      <xs:choice minOccurs="0">
+        <xs:group ref="composeBase_g"/>
+        <xs:group ref="bindsBase_g"/>
+        <xs:group ref="componentsBase_g"/>
+        <xs:element name="Formation" type="XFormationBase"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!-- 
+   -->
+  <xs:group name="subFilter_g">
+    <xs:sequence>  
+      <xs:choice>
+        <xs:group ref="composeFilter_g"/>
+        <xs:group ref="bindsFilter_g"/>
+        <xs:element name="Formation" type="XFormationFilter"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+	-->
+  <xs:group name="subTable_g">
+    <xs:sequence>  
+      <xs:choice>
+        <xs:group ref="composeTable_g"/>
+        <xs:group ref="bindsSingle_g"/>
+        <xs:element name="Formation" type="XFormationTable"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="subSingle_g">
+    <xs:sequence>  
+      <xs:choice>
+        <xs:group ref="composeCard_g"/>
+        <xs:group ref="bindsSingle_g"/>
+        <xs:element name="Formation" type="XFormationSingle"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="subRoot_g">
+    <xs:sequence>  
+      <xs:choice>
+        <xs:group ref="composeSubRoot_g"/>
+        <xs:group ref="bindsSubRoot_g"/>
+        <xs:element name="Formation" type="XFormationRoot"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+
+  <!--
+	-->
+  <xs:group name="subSectionFilter_g">
+    <xs:sequence>  
+      <xs:choice>
+        <xs:group ref="composeSectionFilter_g"/>
+        <xs:group ref="bindsFilter_g"/>
+        <xs:element name="Formation" type="XFormationSectionFilter"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="subSectionTable_g">
+    <xs:sequence>  
+      <xs:choice>
+        <xs:group ref="composeSectionTable_g"/>
+        <xs:group ref="bindsSingle_g"/>
+        <xs:element name="Formation" type="XFormationSectionTable"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="subSectionSingle_g">
+    <xs:sequence>  
+      <xs:choice>
+        <xs:group ref="composeSectionSingle_g"/>
+        <xs:group ref="bindsSingle_g"/>
+        <xs:element name="Formation" type="XFormationSectionSingle"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="subHidden_g">
+    <xs:sequence>
+      <xs:choice>
+        <xs:group ref="composeHidden_g" />
+        <xs:group ref="bindsSingle_g" />
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+	-->
+  <xs:group name="composeBase_g">
+    <xs:sequence>
+      <xs:element name="Expansions" type="XExpansionsBase" minOccurs="0"/>
+      <xs:element name="Assistants" type="XAssistantsBase" minOccurs="0"/>
+      <xs:element name="Detached" type="XDetachedBase" minOccurs="0"/>
+    </xs:sequence>
+  </xs:group>
+  <!--
+	-->
+  <xs:group name="composeFilter_g">
+    <xs:sequence>
+      <xs:element name="Expansions" type="XExpansionsFilter" minOccurs="0"/>
+      <xs:element name="Assistants" type="XAssistantsFilter" minOccurs="0"/>
+    </xs:sequence>
+  </xs:group>
+  <!--
+	-->
+  <xs:group name="composeCard_g">
+    <xs:sequence>
+      <xs:element name="Expansions" type="XExpansionsSingle" minOccurs="0"/>
+      <xs:element name="Assistants" type="XAssistantsSingle" minOccurs="0"/>
+    </xs:sequence>
+  </xs:group>
+  <!--
+	-->
+  <xs:group name="composeTable_g">
+    <xs:sequence>
+      <xs:element name="Expansions" type="XExpansionsSingle" minOccurs="0"/>
+      <xs:element name="Assistants" type="XAssistantsSingle" minOccurs="0"/>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="composeSubRoot_g">
+    <xs:sequence>
+      <xs:element name="Expansions" type="XExpansionsSubRoot"/>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="composeSectionFilter_g">
+    <xs:sequence>
+      <xs:element name="Expansions" type="XExpansionsSectionFilter"/>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="composeSectionTable_g">
+    <xs:sequence>
+      <xs:element name="Expansions" type="XExpansionsSectionTable"/>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="composeSectionSingle_g">
+    <xs:sequence>
+      <xs:element name="Expansions" type="XExpansionsSectionSingle"/>
+    </xs:sequence>
+  </xs:group>
+  <!--
+	-->
+  <xs:group name="composeHidden_g">
+    <xs:sequence>
+      <xs:element name="Expansions" type="XExpansionsSingle"/>
+    </xs:sequence>
+  </xs:group>
+  <!--
+	-->
+	<xs:group name="bindsBase_g">
+		<xs:choice>
+			<xs:group ref="bindBase_g" maxOccurs="unbounded"/>
+		</xs:choice>
+	</xs:group>
+  <!--
+	-->
+  <xs:group name="bindBase_g">
+    <xs:choice>
+      <xs:element name="Mount" type="XMountBase" />
+      <xs:element name="Bind" type="XBindBase" />
+      <xs:element name="Restrict" type="XRestrictBase" />
+      <xs:element name="Through" type="XTransparentBase" />
+      <xs:element name="With" type="XWithBase" />
+    </xs:choice>
+  </xs:group>
+	<!--
+	-->
+  <xs:group name="bindsSingle_g">
+    <xs:choice>
+    	<xs:group ref="bindSingle_g" maxOccurs="unbounded"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+	-->
+	<xs:group name="bindsFilter_g">
+		<xs:choice>
+			<xs:group ref="bindFilter_g" maxOccurs="unbounded" />
+		</xs:choice>
+	</xs:group>
+  <!--
+	-->
+  <xs:group name="bindsSubRoot_g">
+    <xs:choice>
+      <xs:group ref="bindSubRoot_g" maxOccurs="unbounded" />
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+	<xs:group name="bindSingle_g">
+		<xs:choice>
+      <xs:element name="Mount" type="XSingleMount" />
+			<xs:element name="Bind" type="XSingleBind" />
+			<xs:element name="Restrict" type="XSingleRestrict" />
+      <xs:element name="Through" type="XSingleTransparent" />
+      <xs:element name="With" type="XSingleWith" />
+		</xs:choice>
+	</xs:group>
+	<!--
+	-->
+	<xs:group name="bindFilter_g">
+		<xs:choice>
+			<xs:group ref="bindSingle_g" />
+		</xs:choice>
+	</xs:group>
+  <!--
+  -->
+  <xs:group name="bindSectionRoot_g">
+    <xs:choice>
+      <xs:element name="Mount" type="XSingleMount" />
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="bindSubRoot_g">
+    <xs:choice>
+      <xs:element name="Mount" type="XSingleMount" />
+    </xs:choice>
+  </xs:group>
+  <!--
+  Definitions
+  -->
+  <xs:group name="define_g">
+    <xs:choice>
+      <xs:element name="Define" type="XDefineBase"/>
+    </xs:choice>
+  </xs:group>
+	<!--
+	-->
+  <xs:complexType name="XDefineBase">
+    <xs:choice>
+      <xs:group ref="defineContent_g" minOccurs="0" />
+    </xs:choice>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:group name="defineContent_g">
+    <xs:choice>
+      <xs:group ref="defineMembers_g"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="defineMembers_g">
+    <xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo>
+            <jxb:property name="definitions" />
+          </xs:appinfo>
+        </xs:annotation>
+        <xs:element name="Function" type="XFunctionBase"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  Base type for members of a definition block.
+  -->
+  <xs:complexType name="XDefinition" abstract="true"/>
+  <!--
+  -->
+  <xs:group name="function_g">
+    <xs:choice>
+      <xs:element name="Function" type="XFunctionBase"/>
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:complexType name="XFunctionBase">
+    <xs:complexContent>
+      <xs:extension base="XDefinition">
+        <xs:sequence>
+          <xs:group ref="functionContent_g"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="IdType" use="required"/>
+        <xs:attribute name="type" type="XeFieldType" default="boolean"/>
+        <xs:attribute name="value" type="XExpressionType"/>
+        <xs:attribute name="parameters" type="IdListType"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+  -->
+  <xs:group name="functionContent_g">
+    <xs:sequence>
+      <xs:group ref="functionMembers_g"/>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="functionMembers_g">
+    <xs:sequence>
+      <xs:group ref="value_g" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:group>
+  <!--
+  -->
+  <xs:group name="value_g">
+    <xs:choice>
+      <xs:element name="Value" type="XValue">
+        <xs:annotation>
+          <xs:appinfo>
+            <jxb:property name="valueElement" />
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:element>   
+    </xs:choice>
+  </xs:group>
+  <!--
+  -->
+  <xs:complexType name="XValue">
+    <xs:simpleContent>
+      <xs:extension base="XExpressionType">
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <!--
+  -->
+</xs:schema>

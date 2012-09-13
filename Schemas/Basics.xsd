@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"           
+           xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+           jaxb:extensionBindingPrefixes="xjc"
+           jaxb:version="2.0">
+
+  <xs:annotation>
+    <xs:appinfo>
+        <jaxb:globalBindings>
+            <xjc:serializable uid="1"/>
+        </jaxb:globalBindings>
+    </xs:appinfo>
+  </xs:annotation>
+
+  <!--
+    Basic types used in many specifications
+  	-->
+
+  <xs:simpleType name="IdListType">
+  	<xs:list itemType="IdType"/>
+  </xs:simpleType>	
+<!--
+-->  
+  <xs:simpleType name="XQualifiedIdListType">
+    <xs:list itemType="QualifiedIdType"/>
+  </xs:simpleType>  
+<!--
+-->
+  <xs:simpleType name="OptIdType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[_a-zA-Z]{1}([_a-zA-Z0-9])*"/>
+      <xs:pattern value=""/>
+    </xs:restriction>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="IdType">
+    <xs:restriction base="OptIdType">
+      <xs:pattern value="[_a-zA-Z]{1}([_a-zA-Z0-9])*"/>
+    </xs:restriction>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="QualifiedIdType">
+    <xs:restriction base="xs:string">
+      <!-- initial ( delimiter initial | subsequent )* -->
+      <xs:pattern value="([_a-zA-Z]{1})((\.|\->)([_a-zA-Z]{1})|([_a-zA-Z0-9]))*"/>
+    </xs:restriction>
+  </xs:simpleType> 
+<!--
+-->
+  <xs:simpleType name="XFieldName">
+    <!--  change that later -->
+    <xs:restriction base="QualifiedIdType" />
+    <!-- It needs a regular expresion -->
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="ForeignKeyIdListType">
+    <xs:restriction base="IdChoiceListType"/>
+  </xs:simpleType> 
+<!--
+  Id-sequence-list: Separated by ';'
+-->
+  <xs:simpleType name="IdSequenceListType">
+    <xs:restriction base="xs:string">
+      <xs:whiteSpace value="collapse"/>
+      <xs:pattern value="([_a-zA-Z]{1}([_a-zA-Z0-9])* *[;] *)*[_a-zA-Z]{1}([_a-zA-Z0-9])*"/>
+      <xs:pattern value=""/>
+    </xs:restriction>
+  </xs:simpleType>  
+<!--
+  Id-choice-list: Separated by ','
+-->
+  <xs:simpleType name="IdChoiceListType">
+    <xs:restriction base="xs:string">
+      <xs:whiteSpace value="collapse"/>
+<!--       <xs:pattern value="([_a-zA-Z]{1}([_a-zA-Z0-9])* *[,] *)*[_a-zA-Z]{1}([_a-zA-Z0-9])*"/> -->
+<!--       <xs:pattern value=""/> -->
+    </xs:restriction>
+  </xs:simpleType>  
+<!--
+-->
+  <xs:simpleType name="BindForeignKeyIdType">
+    <xs:union>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="primary" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="ForeignKeyIdType"/>
+      </xs:simpleType>
+    </xs:union> 
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="ForeignKeyIdType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[_a-zA-Z]{1}([_a-zA-Z0-9])*"/>
+    </xs:restriction>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="PluginIdType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[_a-zA-Z]{1}(.([_a-zA-Z0-9])*)*"/>
+    </xs:restriction>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="TitleType">
+    <xs:restriction base="xs:normalizedString"/>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="VersionType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9]{1,}(.([0-9]){1,2})?"/>
+    </xs:restriction>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="BooleanType">
+    <xs:restriction base="xs:boolean"/>
+  </xs:simpleType>
+<!--
+-->
+<xs:simpleType name="XExpressionListType">
+  <xs:restriction base="xs:string"/>
+</xs:simpleType>  
+<!--
+-->
+  <xs:simpleType name="XExpressionType">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="XBooleanExpressionType">
+    <xs:restriction base="XExpressionType"/>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="XIntegerExpressionType">
+    <xs:restriction base="XExpressionType"/>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="XRealExpressionType">
+    <xs:restriction base="XExpressionType"/>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="XAmountExpressionType">
+    <xs:restriction base="XExpressionType"/>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="XStringExpressionType">
+    <xs:restriction base="XExpressionType"/>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="XDateExpressionType">
+    <xs:restriction base="XExpressionType"/>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="XTimeExpressionType">
+    <xs:restriction base="XExpressionType"/>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="XEnumExpressionType">
+    <xs:restriction base="XExpressionType"/>
+  </xs:simpleType>
+<!--
+-->      
+  <xs:simpleType name="XInvocationListType">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+<!--
+-->
+	<xs:simpleType name="IntegerType">
+    <xs:restriction base="xs:int"/>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="DecimalType">
+    <xs:restriction base="xs:decimal"/>
+  </xs:simpleType>  
+<!--
+-->
+	<xs:simpleType name="XPositiveIntegerType">
+		<xs:restriction base="xs:int">
+			<xs:minInclusive value="0"/>
+		</xs:restriction>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="CharacterType">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+      <xs:maxLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="XeFieldType">
+    <xs:restriction base="xs:token">
+      <xs:enumeration value="boolean" />
+      <xs:enumeration value="integer" />
+      <xs:enumeration value="real" />
+      <xs:enumeration value="amount" />
+      <xs:enumeration value="string" />
+      <xs:enumeration value="date" />
+      <xs:enumeration value="time" />
+      <xs:enumeration value="enum" />
+    </xs:restriction>
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="XeSizeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="standard" />
+      <xs:enumeration value="tiny" />
+      <xs:enumeration value="small" />
+      <xs:enumeration value="medium" />
+      <xs:enumeration value="large" />
+      <xs:enumeration value="huge" />
+      <xs:enumeration value="vast" />
+    </xs:restriction>
+  </xs:simpleType>
+<!--
+-->  
+  <xs:simpleType name="XPlaceholderStringType">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+<!--
+-->
+  <xs:simpleType name="XResourceIdType">
+    <xs:restriction base="xs:string">
+    </xs:restriction>
+  </xs:simpleType>
+<!-- 
+-->
+  <xs:simpleType name="XEntityType">
+  <!-- Jobcost(::TimeSheet)* -->
+    <xs:restriction base="xs:string">
+      <xs:pattern value="([a-zA-Z]+)((::)([a-zA-Z]+))*"/>
+      <xs:pattern value=""/>
+    </xs:restriction>
+  </xs:simpleType>
+<!-- 
+-->
+ <xs:simpleType name="XeSuggestionsType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="standard"/>
+      <xs:enumeration value="onDemand"/>
+      <xs:enumeration value="automatic"/>
+      <xs:enumeration value="none"/>
+    </xs:restriction>
+  </xs:simpleType>
+<!-- 
+-->
+  <xs:attributeGroup name="templateValue_ag">
+    <xs:attribute name="template"   type="XPlaceholderStringType" />
+    <xs:attribute name="arguments"  type="XExpressionListType"    />
+  </xs:attributeGroup>
+<!-- 
+-->  
+  <xs:attributeGroup name="templateValueRequired_ag">
+    <xs:attribute name="template"   type="XPlaceholderStringType"   use="required" />
+    <xs:attribute name="arguments"  type="XExpressionListType" />
+  </xs:attributeGroup>
+<!-- 
+-->
+</xs:schema>

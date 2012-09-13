@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!-- Initials YYYY-MM-DD Version Brief summary -->
+<!-- ************************************** -->
+
+<!-- RUG 2010-08-19 Version 0.1   Description-tag in tables and forms -->
+<!-- RUG 2010-08-19 Version 0.2   Fixed role source type -->
+<!-- KSL 2011-04-26 Version 0.3   Added Environment specification -->
+<!-- UTS 2011-05-17 Version 0.4   Added Update Sites configuration -->
+<!-- ANH 2011-08-09 Version 0.5 X Changed namespace from maconomy to deltek -->
+
+<!-- Indication after version number: . = backward compatible, X = NOT backward compatible, conversion needed -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           xmlns="http://www.deltek.com/ns/mcsl"
+           targetNamespace="http://www.deltek.com/ns/mcsl" 
+           xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+           jxb:version="2.0" elementFormDefault="qualified" 
+           attributeFormDefault="unqualified">
+
+  <xs:include schemaLocation="./Basics.xsd" />
+  
+  <!-- **************************************************************************** -->
+  <!-- ****************************       ROOT       ****************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:element name="MCSL" type="XMCSL" />
+  
+  <xs:complexType name="XMCSLBase">
+    <xs:choice>
+      <xs:group ref="mcslContent_g" />
+    </xs:choice>
+    <!-- minVersion is the minimum supported version -->
+    <xs:attribute name="minVersion" type="VersionType" fixed="0.5" />
+    <!-- maxVersion is the version of the current xsd (=current version) -->
+    <xs:attribute name="maxVersion" type="VersionType" fixed="0.5" />
+  </xs:complexType>
+  
+  <xs:simpleType name="MCSLVersionType">
+    <xs:restriction base="VersionType">
+      <xs:pattern value="0.[5]" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="XMCSL">
+    <xs:complexContent>
+      <xs:extension base="XMCSLBase">
+        <xs:attribute name="version" type="MCSLVersionType" use="required" />
+        <xs:attribute name="maxVersion" type="VersionType" use="prohibited" />
+        <xs:attribute name="minVersion" type="VersionType" use="prohibited" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <xs:group name="mcslContent_g">
+    <xs:choice>
+      <xs:group ref="mcslMembers_g" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="mcslMembers_g">
+    <xs:sequence>
+      <xs:element name="Access" type="XAccess" minOccurs="0" />
+      <xs:element name="Environment" type="XEnvironment" minOccurs="0" />
+      <xs:element name="Configuration" type="XConfiguration" minOccurs="0" />
+    </xs:sequence>
+  </xs:group>
+
+  <!-- **************************************************************************** -->
+  <!-- *************************    OUTER ACCESS TYPE    ************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:complexType name="XAccess">
+    <xs:choice>
+      <xs:annotation>
+        <xs:appinfo>
+          <jxb:property name="roles" />
+        </xs:appinfo>
+      </xs:annotation>
+      <xs:group ref="accessContent_g" />
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:group name="accessContent_g">
+    <xs:choice>
+      <xs:element name="Role" type="XRole" minOccurs="0" maxOccurs="unbounded" />
+    </xs:choice>
+  </xs:group>
+
+  <!-- **************************************************************************** -->
+  <!-- *************************        ROLE TYPE        ************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:simpleType name="XRoleSourceType">
+    <xs:restriction base="xs:string">
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:complexType name="XRole">
+    <xs:choice>
+      <xs:annotation>
+        <xs:appinfo>
+          <jxb:property name="accessList" />
+        </xs:appinfo>
+      </xs:annotation>
+      <xs:group ref="roleContent_g" />
+    </xs:choice>
+    <xs:attribute name="source" type="XRoleSourceType" use="required" />
+    <xs:attribute name="name" type="IdType" />
+  </xs:complexType>
+
+  <xs:group name="roleContent_g">
+    <xs:choice>
+      <xs:group ref="roleMembers_g" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="roleMembers_g">
+    <xs:choice>
+      <xs:element name="Access" type="XAccessList" />
+    </xs:choice>
+  </xs:group>
+
+  <!-- **************************************************************************** -->
+  <!-- *************************       ACCESS TYPE       ************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:complexType name="XAccessList">
+    <xs:sequence>
+      <xs:element name="Exclude" type="XExcludeList"
+        minOccurs="0" maxOccurs="1" />
+      <xs:group ref="accessListItems_g">
+        <xs:annotation>
+          <xs:appinfo>
+            <jxb:property name="include" />
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:group>
+    </xs:sequence>
+    <xs:attribute name="all" type="XExpressionType" default="false" />
+  </xs:complexType>
+
+  <!-- **************************************************************************** -->
+  <!-- *************************    ACCESS LIST ITEMS    ************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:group name="accessListItems_g">
+    <xs:choice>
+      <xs:element name="Workspace" type="XWorkspaceItem" minOccurs="0" maxOccurs="unbounded" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="XWorkspaceItem">
+    <xs:attribute name="source" type="IdType" use="required" />
+    <xs:attribute name="name" type="IdType" />
+  </xs:complexType>
+
+  <!-- **************************************************************************** -->
+  <!-- *************************       EXCLUDE LIST      ************************** -->
+  <!-- **************************************************************************** -->
+
+  <xs:complexType name="XExcludeList">
+    <xs:choice>
+      <xs:annotation>
+        <xs:appinfo>
+          <jxb:property name="exclude" />
+        </xs:appinfo>
+      </xs:annotation>
+      <xs:group ref="excludeListContent_g" />
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:group name="excludeListContent_g">
+    <xs:choice>
+      <xs:group ref="accessListItems_g" />
+    </xs:choice>
+  </xs:group>
+  
+  <!-- **************************************************************************** -->
+  <!-- **********************       ENVIRONMENT TYPE       ************************ -->
+  <!-- **************************************************************************** -->
+  
+  <xs:complexType name="XEnvironment">
+    <xs:choice>
+      <xs:group ref="environmentContent_g" />
+    </xs:choice>
+  </xs:complexType>
+  
+  <xs:group name="environmentContent_g">
+    <xs:choice>
+      <xs:group ref="environmentMembers_g" />
+    </xs:choice>
+  </xs:group>
+  
+  <xs:group name="environmentMembers_g">
+    <xs:sequence>
+      <xs:group ref="define_g" minOccurs="0" />
+      <xs:element name="Binding" type="XBinding" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:group>
+  
+  
+  <!-- **************************************************************************** -->
+  <!-- ****************************       DEFINE       **************************** -->
+  <!-- **************************************************************************** -->
+  
+  <xs:group name="define_g">
+    <xs:choice>
+      <xs:element name="Define" type="XDefine" minOccurs="0" />
+    </xs:choice>
+  </xs:group>
+  
+  <xs:complexType name="XDefine">
+    <xs:choice>
+      <xs:group ref="defineContent_g" />
+    </xs:choice>
+  </xs:complexType>
+  
+  <xs:group name="defineContent_g">
+    <xs:choice>
+      <xs:group ref="defineMembers_g" />
+    </xs:choice>
+  </xs:group>
+  
+  <xs:group name="defineMembers_g">
+    <xs:choice>
+      <xs:element name="Fields" type="XFieldsDefine" maxOccurs="unbounded" />
+    </xs:choice>
+  </xs:group>
+
+
+  <!-- **************************************************************************** -->
+  <!-- ***********************       BINDING TYPE        ************************** -->
+  <!-- **************************************************************************** -->
+  
+  <xs:complexType name="XBinding">
+    <xs:choice>
+      <xs:group ref="bindingContent_g" />
+    </xs:choice>
+    <xs:attribute name="entity" type="XEntityType" />
+    <xs:attribute name="namespace" type="XPlaceholderStringType" use="required" />
+  </xs:complexType>
+
+  <xs:group name="bindingContent_g">
+    <xs:choice>
+      <xs:group ref="bindingMembers_g" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="bindingMembers_g">
+    <xs:sequence>
+      <xs:group ref="restriction_g" minOccurs="0" />
+      <xs:group ref="fields_g" minOccurs="0"/>
+    </xs:sequence>
+  </xs:group>
+  
+  
+  <!-- **************************************************************************** -->
+  <!-- ***********************        FIELDS TYPE        ************************** -->
+  <!-- **************************************************************************** -->
+  
+  <xs:group name="fields_g">
+    <xs:choice>
+      <xs:element name="Fields" type="XFields" />
+    </xs:choice>
+  </xs:group>
+  
+  <xs:complexType name="XFieldsBase" abstract="true">
+    <xs:choice>
+      <xs:group ref="fieldsContent_g" />
+    </xs:choice>
+    <xs:attribute name="name" type="IdType" />
+  </xs:complexType>
+  
+  <xs:complexType name="XFields">
+    <xs:complexContent>
+      <xs:restriction base="XFieldsBase">
+        <xs:choice>
+          <xs:group ref="fieldsContent_g" />
+        </xs:choice>
+        <xs:attribute name="name" type="IdType" use="prohibited" />  
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <xs:complexType name="XFieldsDefine">
+    <xs:complexContent>
+      <xs:restriction base="XFieldsBase">
+        <xs:choice>
+          <xs:group ref="fieldsContent_g" />
+        </xs:choice>
+        <xs:attribute name="name" type="IdType" use="required" />
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <xs:group name="fieldsContent_g">
+    <xs:choice>
+      <xs:group ref="fieldsMembers_g" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="fieldsMembers_g">
+    <xs:choice>
+      <xs:group ref="field_g" minOccurs="0" maxOccurs="unbounded" />
+    </xs:choice>
+  </xs:group>
+  
+  <xs:group name="field_g">
+    <xs:choice>
+      <xs:element name="Field" type="XField" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="Fields" type="XFieldsRef" minOccurs="0" maxOccurs="unbounded" />
+    </xs:choice>
+  </xs:group>
+  
+  <xs:complexType name="XField">
+    <xs:attribute name="source" type="QualifiedIdType" />
+    <xs:attribute name="name" type="QualifiedIdType" />
+    <xs:attribute name="valueString" type="XPlaceholderStringType" />
+    <xs:attribute name="value" type="XExpressionType"/>
+  </xs:complexType>
+  
+  <xs:complexType name="XFieldsRef">
+    <xs:attribute name="ref" type="IdType" use="required" />
+  </xs:complexType>
+  
+  
+  <!-- **************************************************************************** -->
+  <!-- *********************       RESTRICTION TYPE        ************************ -->
+  <!-- **************************************************************************** -->
+    
+  <xs:group name="restriction_g">
+    <xs:choice>
+      <xs:element name="Restriction" type="XRestriction" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="XRestriction">
+    <xs:sequence>
+      <xs:group ref="restrictionContent_g"/>
+    </xs:sequence>
+    <xs:attribute name="condition" type="XBooleanExpressionType"/>
+  </xs:complexType>
+
+  <xs:group name="restrictionContent_g">
+    <xs:sequence>
+      <xs:group ref="restrictionMembers_g"/>
+    </xs:sequence>
+  </xs:group>
+  
+  <xs:group name="restrictionMembers_g">
+    <xs:sequence>
+      <xs:group ref="condition_g" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:group>
+  
+  <xs:group name="condition_g">
+    <xs:choice>
+      <xs:element name="Condition" type="XCondition">
+        <xs:annotation>
+          <xs:appinfo>
+            <jxb:property name="conditionElement"/>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:element>   
+    </xs:choice>
+  </xs:group>
+  
+  <xs:complexType name="XCondition">
+    <xs:simpleContent>
+      <xs:extension base="XBooleanExpressionType">
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
+ 
+  <!-- **************************************************************************** -->
+  <!-- **********************      CONFIGURATION TYPE      ************************ -->
+  <!-- **************************************************************************** -->
+  
+  <xs:complexType name="XConfiguration">
+    <xs:choice>
+      <xs:group ref="configurationContent_g" />
+    </xs:choice>
+  </xs:complexType>
+  
+  <xs:group name="configurationContent_g">
+    <xs:choice>
+      <xs:group ref="configurationMembers_g" />
+    </xs:choice>
+  </xs:group>
+  
+  <xs:group name="configurationMembers_g">
+    <xs:sequence>
+      <xs:group ref="updateSites_g" minOccurs="0" />
+    </xs:sequence>
+  </xs:group>
+  
+    <xs:group name="updateSites_g">
+    <xs:choice>
+      <xs:element name="UpdateSites" type="XUpdateSites" />
+    </xs:choice>
+  </xs:group>
+  
+  <xs:complexType name="XUpdateSites">
+    <xs:choice>
+      <xs:group ref="updateSitesContent_g" maxOccurs="unbounded" />
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:group name="updateSitesContent_g">
+    <xs:choice>
+      <xs:group ref="updateSitesMembers_g" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="updateSitesMembers_g">
+    <xs:choice>
+      <xs:group ref="updateSite_g" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="updateSite_g">
+    <xs:choice>
+      <xs:element name="UpdateSite" type="XUpdateSite"/>
+    </xs:choice>
+  </xs:group>
+  
+  <xs:complexType name="XUpdateSite">
+    <xs:attribute name="location"  type="XPlaceholderStringType"   use="required"/>
+    <xs:attribute name="arguments" type="XExpressionListType" />
+  </xs:complexType>
+  
+</xs:schema>
