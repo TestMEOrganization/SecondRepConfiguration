@@ -9,4 +9,5 @@
   <ServerConfig:Install time="2012-09-25T10:45:19.584+0200" revision="f4836d1e9064f5d8822d8aa67ea5b09005fb9959" userid="SteenBrahe" tag="v2012.09.21_11.58.35_SteenBrahe"/>
   <ServerConfig:Install time="2012-09-25T10:46:06.037+0200" revision="f4836d1e9064f5d8822d8aa67ea5b09005fb9959" userid="SteenBrahe" tag="v2012.09.21_11.58.35_SteenBrahe"/>
   <ServerConfig:Install time="2012-10-01T15:49:11.191+0200" revision="c2f7c8d5f6a5166e93d15709ca7cd7b0164b068d" userid="SteenBrahe" tag="v2012.09.13_10.47.04_SteenBrahe"/>
+  <ServerConfig:Install time="2012-10-01T15:50:01.098+0200" revision="5d60b36840c282f485f46e2d6c99a77df79ca6b0" userid="SteenBrahe" tag="v2012.09.13_10.37.33_SteenBrahe"/>
 </xmi:XMI>
